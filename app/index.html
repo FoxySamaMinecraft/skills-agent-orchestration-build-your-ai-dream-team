@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A quick overview of project status, ownership, activity, and priority.">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header>
+        <p class="dashboard__eyebrow">Team overview</p>
+        <h1>Project Pulse</h1>
+        <p>A clear view of the projects, people, and priorities moving forward.</p>
+      </header>
+      <section class="dashboard__section" aria-labelledby="projects-heading">
+        <div class="dashboard__intro">
+          <h2 id="projects-heading">Projects</h2>
+          <p>A current snapshot of the work moving our team forward.</p>
+        </div>
+        <p id="load-status" class="dashboard__status dashboard__status--loading" role="status" aria-live="polite" aria-atomic="true">Loading projects…</p>
+        <p id="load-error" class="dashboard__status dashboard__status--error" role="alert" hidden></p>
+        <div id="project-grid" class="project-grid" aria-busy="true"></div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <p>Project Pulse · A shared view of team progress</p>
+    </footer>
+
+    <script>
+      const requiredFields = ["name", "summary", "owner", "status", "recentActivity", "priority"];
+      const statusMessage = document.querySelector("#load-status");
+      const errorMessage = document.querySelector("#load-error");
+      const projectGrid = document.querySelector("#project-grid");
+
+      function validateProjects(payload) {
+        if (!payload || typeof payload !== "object" || !Array.isArray(payload.projects)) {
+          throw new Error("Project data must contain a projects array.");
+        }
+
+        payload.projects.forEach((project, index) => {
+          if (!project || typeof project !== "object" || requiredFields.some((field) =>
+            typeof project[field] !== "string" || project[field].trim() === ""
+          )) {
+            throw new Error(`Project ${index + 1} is missing one or more required text fields.`);
+          }
+        });
+
+        return payload.projects;
+      }
+
+      function makeField(className, label, value) {
+        const wrapper = document.createElement("div");
+        wrapper.className = className;
+
+        const term = document.createElement("strong");
+        term.textContent = label;
+        const description = document.createElement("span");
+        description.textContent = value;
+
+        wrapper.append(term, description);
+        return wrapper;
+      }
+
+      function makeBadge(className, kind, value) {
+        const badge = document.createElement("span");
+        const modifier = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        badge.className = `${className} badge--${kind}-${modifier}`;
+        badge.textContent = value;
+        return badge;
+      }
+
+      function makeProjectCard(project) {
+        const card = document.createElement("article");
+        card.className = "project-card";
+
+        const header = document.createElement("div");
+        header.className = "project-card__header";
+        const name = document.createElement("h3");
+        name.className = "project-card__name";
+        name.textContent = project.name;
+        const status = makeBadge("project-card__status badge badge--status", "status", project.status);
+        header.append(name, status);
+
+        const summary = document.createElement("p");
+        summary.className = "project-card__summary";
+        summary.textContent = project.summary;
+
+        const details = document.createElement("div");
+        details.className = "project-card__meta";
+        details.append(
+          makeField("project-card__owner", "Owner", project.owner),
+          makeField("project-card__activity", "Recent activity", project.recentActivity)
+        );
+
+        const priority = document.createElement("div");
+        priority.className = "project-card__priority";
+        const priorityLabel = document.createElement("span");
+        priorityLabel.className = "project-card__label";
+        priorityLabel.textContent = "Priority";
+        priority.append(priorityLabel, makeBadge("badge badge--priority", "priority", project.priority));
+
+        card.append(header, summary, details, priority);
+        return card;
+      }
+
+      async function loadProjects() {
+        try {
+          const response = await fetch("project-data.json");
+          if (!response.ok) {
+            throw new Error(`Project data could not be loaded (HTTP ${response.status}).`);
+          }
+
+          const projects = validateProjects(await response.json());
+          projectGrid.setAttribute("aria-busy", "false");
+
+          if (projects.length === 0) {
+            statusMessage.classList.remove("dashboard__status--loading");
+            statusMessage.classList.add("dashboard__status--empty");
+            statusMessage.textContent = "There are no projects to display yet.";
+            return;
+          }
+
+          const cards = projects.map(makeProjectCard);
+          projectGrid.replaceChildren(...cards);
+          statusMessage.hidden = true;
+        } catch (error) {
+          projectGrid.setAttribute("aria-busy", "false");
+          statusMessage.hidden = true;
+          errorMessage.textContent = `Unable to show projects. ${error.message}`;
+          errorMessage.hidden = false;
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "projects": [
+    {
+      "name": "Customer Insights",
+      "summary": "Bring product usage trends together so teams can make informed roadmap decisions.",
+      "owner": "Maya Chen",
+      "status": "On track",
+      "recentActivity": "Completed the first review of the analytics event map.",
+      "priority": "High"
+    },
+    {
+      "name": "Mobile Checkout",
+      "summary": "Make checkout faster and more dependable for customers shopping on mobile.",
+      "owner": "Jordan Patel",
+      "status": "At risk",
+      "recentActivity": "Payment provider testing is waiting on updated sandbox credentials.",
+      "priority": "Critical"
+    },
+    {
+      "name": "Knowledge Hub",
+      "summary": "Create a searchable home for internal guides, decisions, and onboarding resources.",
+      "owner": "Avery Brooks",
+      "status": "In progress",
+      "recentActivity": "The content team shared a draft information architecture for feedback.",
+      "priority": "Medium"
+    },
+    {
+      "name": "Accessibility Foundations",
+      "summary": "Improve keyboard and screen-reader experiences across the core product journeys.",
+      "owner": "Sam Rivera",
+      "status": "On track",
+      "recentActivity": "Keyboard testing is complete for the account settings flow.",
+      "priority": "High"
+    }
+  ]
+}
